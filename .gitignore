@@ -3,8 +3,16 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Java tmp files or dirs
+*.log
+*.log.*
+*.class
+~*
+~*/
+
 # C extensions
 *.so
+*.o
 
 # Distribution / packaging
 .Python
@@ -102,3 +110,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# ignore temp dirs
+tmp/
+

@@ -1,0 +1,56 @@
+main:
+    title: $APPNAME
+    description: $APPHELP
+    options:
+        - log_path:
+            optarg: '-O --log-path'
+            action: store
+            type: string
+            default: '/var/log/python2app'
+            help: 'path to app log file'
+            metavar: LOGPATH
+
+        - log_level:
+            optarg: '-L --log-level'
+            action: store
+            type: string
+            default: DEBUG
+            help: 'log level: DEBUG WARN INFO ERROR'
+            metavar: LOGLEVEL
+
+        - watch_paths:
+            optarg: '-W --watch-paths'
+            default: '/tmp/{logfile, logfile2}::/var/log'
+            help: 'paths to watch'
+
+        - interval_seconds:
+            type: int
+            default: 10
+            help: 'interval by seconds'
+
+        - num_workers:
+            optarg: '-N --num-workers'
+            type: int
+            default: 10
+            help: 'number of workers'
+            metavar: NUM
+
+        - queue_size:
+            type: int
+            default: 512
+            help: 'size of task queue'
+
+        - status:
+            action: store_true
+            default: False
+            help: 'get pid status'
+
+        - daemon:
+            action: store_true
+            default: False
+            help: 'run ad daemon'
+
+        - forcestop:
+            action: store_true
+            default: False
+            help: 'enable prepare options'

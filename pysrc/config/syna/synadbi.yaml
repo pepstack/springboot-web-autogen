@@ -1,0 +1,303 @@
+#######################################
+# 用于自动生成 redis dbi 的配置文件
+# 必须以 utf-8 编码
+# 字符名长度最小为 3 个字符
+#######################################
+author: master@pepstack.com
+version: 1.0
+create: '2018-12-22'
+license: license_header.txt
+
+#######################################
+# 表空间名称
+#######################################
+tablespace: sydb
+
+#######################################
+# 在目录 $project_root/src/synadbi
+# 下自动生成以下文件:
+#######################################
+define: synadef.h
+header: synadbi.h
+source: synadbi.c
+
+#######################################
+# 常量预定义: synadef.h
+#   synadef.h 文件可能需要手动修改!
+#######################################
+includes:
+    - '<redisapi/redisapi.h>'
+    - '<syna_config.h>'
+
+
+#######################################
+# 常量定义
+#######################################
+constants:
+    keybuf_size_max: 128
+    valbuf_size_max: 1024
+
+    SYCFG_STASHPREFIX_LEN_MAX: 30
+    SYCFG_CENTRUMID_LEN_MAX: 30
+    SYCFG_NEURONID_LEN_MAX: 30
+    SYCFG_SECRET_LEN_MAX: 30
+    SYCFG_HOST_LEN_MAX: 30
+    SYCFG_ROUTE_LEN_MAX: 30
+    SYCFG_STASHPATH_LEN_MAX: 30
+    SYCFG_FILENAME_LEN_MAX: 30
+    SYCFG_PATHID_LEN_MAX: 256
+
+
+#######################################
+# ub8: HINCRBY key field increment
+# f8:  HINCRBYFLOAT key field increment
+#######################################
+# {sydb::uuid}
+uuid-table:
+    comment: |
+        计数器生成表 
+
+    fields:
+        - entryid
+        - sessionid
+        - centrum-sid
+        - neuron-uid
+
+    #float-fields:
+    #    - weight
+    #    - salary
+
+
+#######################################
+# 定义全部 hash 表
+#######################################
+tables:
+    # {sydb::centrumid:$centrumid}
+    centrumid:
+        comment: |
+            服务注册表.
+
+              centrumid - 指定的服务名(字符串)
+              sid - 服务唯一数字编号
+              magic - 服务加密字
+              maxneurons - 允许登录的最多客户端数
+              timeout - 会话超时(秒)
+              stashprefix - 服务端文件存储的路径前缀
+
+        rowkey: centrumid
+        fields:
+            centrumid: str(SYCFG_CENTRUMID_LEN_MAX)
+            sid: ub4
+            magic: ub4
+            maxneurons: ub4
+            timeout: ub4
+            stashprefix: str(SYCFG_STASHPREFIX_LEN_MAX)
+        phoenix:
+            # default configs only for hbase-phoenix
+            immutable_rows: false
+            column_family: '0'
+            salt_buckets: 30
+            ttl_seconds: 86400
+            split_on: pk
+            data_block_encoding:
+            versions: 5
+
+    # {sydb::centrum:$sid}
+    centrum:
+        comment: |
+            服务状态信息表.
+
+              centrumid - 指定的服务名(字符串)
+              sid - 服务端唯一数字ID
+              host - 服务的主机名称(ip地址)
+              port - 服务端口号
+              status - 服务的状态标识
+              threads - 服务线程总数
+              queues - 服务队列大小
+              neurons - 当前连接的客户端数
+              connfds - 当前总的 socket 连接数
+
+        rowkey: sid
+        fields:
+            sid: ub4
+            centrumid: str(SYCFG_CENTRUMID_LEN_MAX)
+            host: str(SYCFG_HOST_LEN_MAX)
+            port: ub4
+            status: ub4
+            threads: ub4
+            queues: ub4
+            neurons: ub4
+            connfds: ub4
+
+    # {sydb::neuronid:$neuronid}
+    neuronid:
+        comment: |
+            客户端注册表.
+
+              neuronid - 客户端指定的唯一名称(字符串), 用于登录验证
+              uid - 客户端的唯一数字ID
+              cretime - 客户端创建时间戳(秒)
+              endtime - 客户端终止时间戳(秒)
+              status - 客户端状态标识
+              version - 客户端版本号
+              maxconns - 该客户的最大连接数限制(=0 不限制)
+              maxspeed - 该客户的最大传输速度限制(KBS, =0 不限制)
+
+        rowkey: neuronid
+        fields:
+            uid: ub8
+            cretime: ub8
+            endtime: ub8
+            status: ub4
+            version: ub4
+            maxconns: ub4
+            maxspeed: ub4
+            neuronid: str(SYCFG_NEURONID_LEN_MAX)
+            secret: str(SYCFG_SECRET_LEN_MAX)
+
+    # {sydb::sessionid:$sessionid}
+    sessionid:
+        comment: |
+            临时会话表. 键值在会话过期后自动删除.
+
+              sessionid - 连接会话键值(16进制)
+              sid - 服务ID
+              connfd - 会话的 socket 描述符
+              status - 会话状态标识
+              randnum - 随机数
+              uid - 客户端ID
+              sessiontoken - 会话的令牌(16进制)
+              parentsessionid - 父会话(16进制)
+              entryid - 当前会话正在处理的文件条目(16进制)
+
+        rowkey: sessionid
+        fields:
+            sessionid: ub8hex
+
+            sid: ub4
+            connfd: ub4
+            status: ub4
+            randnum: ub4
+            uid: ub8
+            sessiontoken: ub8hex
+            parentsessionid: ub8hex
+            entryid: ub8hex
+
+    # {sydb::connect:$sid:$connfd}   
+    connect:
+        comment: |
+            客户端临时连接表. 键值在会话过期后自动删除.
+
+              sid - 服务ID
+              connfd - socket 连接描述符
+              sessionid - 临时会话键
+              port - 客户端端口
+              host - 客户端ip地址
+              hwaddr - 网卡地址(字符串)
+              credt - 创建时间(字符串)
+
+        rowkey: sid, connfd
+        fields:
+            sid: ub4
+            connfd: ub4
+            sessionid: ub8hex
+            port: ub4
+            host: str(SYCFG_HOST_LEN_MAX)
+            hwaddr: str(30)
+            credt: str(30)
+
+    # {sydb::neuron:$uid}
+    neuron:
+        comment: |
+            客户端状态信息表.
+              uid - 客户端ID
+              neuronid - 客户端唯一名称(字符串)
+              sessionid - 临时会话键(0 不存在)
+
+        rowkey: uid
+        fields:
+            uid: ub8
+            neuronid: str(SYCFG_NEURONID_LEN_MAX)
+            sessionid: ub8hex
+
+    # {sydb::logentry:$sid:$uid:$entrykey}
+    logentry:
+        comment: |
+            日志文件注册表. 永久保留此表.
+
+              sid - 服务端ID
+              uid - 客户端ID
+              entrykey - 文件条目的服务端全路径名的md5值 = md5sum($logstash+$logfile)
+              entryid - 为文件传输而动态分配的条目ID(16进制)
+              cretime - 条目创建的时间戳
+              filetime - 客户端文件最后的时间戳
+              filesize - 客户端文件最后的字节数
+              updtime - 服务端文件最后更新的时间戳
+              position - 服务端文件最后更新的字节位置(大小)
+              status - 文件的状态标记
+              addtime - 累计的时间(秒)
+              speedhigh - 最大传输速度(KBS)
+              speedlow - 最低传输速度(KBS)
+              pathid - 客户端的 pathid 名称
+              route - 客户端的文件的路由
+              logfile - 客户端的日志文件名(不包括路径)
+              logstash - 服务端保存的文件的绝对路径 (不包括文件名)
+              filemd5 - 客户端文件最后的md5值(可选)
+              logmd5 - 服务端文件最后的md5值(可选)
+
+        rowkey: sid, uid, entrykey
+        fields:
+            sid: ub4
+            uid: ub8
+            entrykey: str(32)
+
+            entryid: ub8hex
+            cretime: ub8
+            filetime: ub8
+            filesize: ub8
+            updtime: ub8
+            position: ub8
+
+            status: ub4
+            addtime: ub4
+            speedhigh: ub4
+            speedlow: ub4
+
+            pathid: str(SYCFG_PATHID_LEN_MAX)
+            route: str(SYCFG_ROUTE_LEN_MAX)
+            logfile: str(SYCFG_FILENAME_LEN_MAX)
+            logstash: str(SYCFG_STASHPATH_LEN_MAX)
+
+            filemd5: str(32)
+            logmd5: str(32)
+
+    # {sydb::entryid:$entryid}
+    entryid:
+        comment: |
+            同步日志文件状态临时表.
+
+              entryid - 为文件传输而动态分配的条目ID(16进制)
+              filemode - 条目文件的权限模式
+              mask - 文件事件掩码
+              status - 状态标记
+              sessionid - 连接会话键值(16进制)
+              entrytoken - 访问条目的验证令牌(16进制)
+              offsetcb - 服务最后保存文件的字节偏移
+              updtime - 服务最后保存文件的时间
+              modtime - 客户端最后文件变化的时间
+              entrykey - 文件条目全路径字符串的md5值
+              entryfile - 文件条目的服务端全路径名(=$logstash+$logfile)
+
+        rowkey: entryid
+        fields:
+            entryid: ub8hex
+            filemode: ub4
+            mask: ub4
+            status: ub4
+            sessionid: ub8hex
+            entrytoken: ub8hex
+            offsetcb: ub8
+            updtime: ub8
+            modtime: ub8
+            entrykey: str(32)
+            entryfile: str(SYCFG_STASHPATH_LEN_MAX + SYCFG_FILENAME_LEN_MAX)

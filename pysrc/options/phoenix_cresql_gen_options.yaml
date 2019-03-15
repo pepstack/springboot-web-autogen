@@ -1,0 +1,35 @@
+# options for phoenix_cresql_gen.py
+main:
+    title: $APPNAME
+    description: $APPHELP
+    options:
+        - log_path:
+            optarg: '-O --log-path'
+            action: store
+            type: string
+            default: '/var/log/python2app'
+            help: 'path to app log file'
+            metavar: LOGPATH
+
+        - log_level:
+            optarg: '-L --log-level'
+            action: store
+            type: string
+            default: DEBUG
+            help: 'log level: DEBUG WARN INFO ERROR'
+            metavar: LOGLEVEL
+
+        - source_dbicfg:
+            optarg: '-S --source-dbicfg'
+            default: './config/syna/synadbi.yaml'
+            help: 'path to source dbi config file'
+
+        - dest_sqlfile:
+            optarg: '-D --dest-sqlfile'
+            default: './build/syna/hbase-phoenix.cresql'
+            help: 'path to the generated dest sql file'
+
+        - force:
+            action: store_true
+            default: False
+            help: 'force to overwrite dest file if it exists'
