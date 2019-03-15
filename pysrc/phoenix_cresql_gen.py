@@ -5,9 +5,9 @@
 #
 #   生成 hbase phoenix 数据库创建语句文件
 #
-# @version: 2019-03-15 15:45:56
+# @version:
 # @create: 2019-03-13
-# @update: 2019-03-15 15:45:56
+# @update: 2019-03-15
 #
 #######################################################################
 import os, sys, stat, signal, shutil, inspect, commands, time, datetime
@@ -15,7 +15,6 @@ import os, sys, stat, signal, shutil, inspect, commands, time, datetime
 import yaml, codecs
 
 import optparse, ConfigParser
-
 
 #######################################################################
 # application specific
@@ -250,10 +249,10 @@ def create_phoenix_cresql (dict, modulename, outsqlfile, isforce, moduleCfg):
 #   hbase phoenix database create sqlfile
 #
 # @author: %s
-# @version: 2019-03-15 15:45:56
+# @version: %s
 # @create: %s
-# @update: 2019-03-15 15:45:56
-#
+# @update: %s
+# 
 # 用法:
 #   $ sqlline.py zkhost:zkport sqlfile
 #
@@ -319,7 +318,7 @@ def main(parser, appConfig, loggerConfig):
     loggerDictConfig = utils.logger.set_logger(loggerConfig, options.log_path, options.log_level)
 
     elog.force("%s-%s starting", APPNAME, APPVER)
-
+    
     # 当前脚本绝对路径
     abspath = util.script_abspath(inspect.currentframe())
 
@@ -343,7 +342,7 @@ def main(parser, appConfig, loggerConfig):
 
     # 创建 sqlfile
     create_phoenix_cresql(dict, module.lower(), absSqlFile, options.force, dict.get('constants'))
-
+    
     util.warn("NOW YOU CAN USE BELOW COMMAND TO CREATE TABLES IN HBASE-PHOENIX !")
     elog.force_clean("  $ sqlline.py zkhost:zkport /path/to/file.cresql")
 
