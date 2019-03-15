@@ -6,7 +6,7 @@
 #
 # @create: 2015-12-02
 #
-# @update: 2019-03-15 11:55:28
+# @update: 2019-03-15 18:55:28
 #
 #######################################################################
 import os, errno, sys, shutil, inspect, select, commands
@@ -510,16 +510,24 @@ def relay_read_messages(pathfile, posfile, stopfile, chunk_size=65536, read_maxs
     return (messages, last_position, position)
 
 
-def write_file(fd, encoding, format, *arg):
-    fd.write(unicode((format % arg), encoding))
+def write_file(fd, encoding, format = None, *arg):
+    if format:
+        fd.write(unicode((format % arg), encoding))
     pass
 
 
-def write_file_utf8(fd, format, *arg):
-    content = format % arg
-    fd.write(unicode(content, 'utf-8'))
+def write_file_utf8(fd, format = None, *arg):
+    if format:
+        content = format % arg
+        fd.write(unicode(content, 'utf-8'))
     pass
 
+def writeln_file_utf8(fd, format = None, *arg):
+    if format:
+        content = format % arg
+        fd.write(unicode(content, 'utf-8'))
+    fd.write(unicode('\n', 'utf-8'))
+    pass
 
 def remove_bom_header(filename):
     BOM = b'\xef\xbb\xbf'

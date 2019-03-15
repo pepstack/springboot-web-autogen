@@ -124,17 +124,18 @@ def parse_table_comment (fields, comment):
 
 
 def write_table_comment (fd, table_name, tblcomments):
-    util.write_file_utf8(fd, '\n########################################\n')
-    util.write_file_utf8(fd, '# %s\n', table_name)
+    util.writeln_file_utf8(fd)
+    util.writeln_file_utf8(fd, '#' * 40)
+    util.writeln_file_utf8(fd, '# %s', table_name)
 
     for comment in tblcomments:
         u16line = comment.strip(",. '\n").strip('#"')
         if len(u16line) > 0:
             utf8line = u16line.encode('utf-8')
-            util.write_file_utf8(fd, '# %s\n', utf8line)
+            util.writeln_file_utf8(fd, '# %s', utf8line)
         pass
 
-    util.write_file_utf8(fd, '########################################\n')
+    util.writeln_file_utf8(fd, '#' * 40)
     pass
 
 
@@ -205,9 +206,9 @@ def create_phoenix_table (fcresql, dbtable, tabledict, moduleCfg):
         pk_name = dbtable.replace('"','').replace('.','_')
         sql += '  CONSTRAINT pk PRIMARY KEY ("%s")\n' % ('", "'.join(pkfldlist))
 
-    sql += ') SALT_BUCKETS=%s;\n\n' % str(salt_buckets_default)
+    sql += ') SALT_BUCKETS=%s;\n' % str(salt_buckets_default)
 
-    util.write_file_utf8(fcresql, sql)
+    util.writeln_file_utf8(fcresql, sql)
 
     # 为表和字段添加注释
     if comment:
@@ -218,8 +219,7 @@ def create_phoenix_table (fcresql, dbtable, tabledict, moduleCfg):
 
         sql = comment_table_sql(table_schem, table_name, None, False, tblcomments, field_remarks_maxlen)
         if sql:
-            util.write_file_utf8(fcresql, sql)
-            util.write_file_utf8(fcresql, "\n")
+            util.writeln_file_utf8(fcresql, sql)
 
         for fldname in fields:
             if fldname in pkfldlist:
@@ -228,8 +228,7 @@ def create_phoenix_table (fcresql, dbtable, tabledict, moduleCfg):
                 sql = comment_table_sql(table_schem, table_name, fldname, False, fldcomments.get(fldname), field_remarks_maxlen)
 
             if sql:
-                util.write_file_utf8(fcresql, sql)
-                util.write_file_utf8(fcresql, "\n")
+                util.writeln_file_utf8(fcresql, sql)
     pass
 
 #######################################################################
@@ -266,31 +265,31 @@ def create_phoenix_cresql (dict, modulename, outsqlfile, isforce, moduleCfg):
 
     for tablename in tables:
         dbtable = '"%s"."%s"' % (tablespace, tablename)
-        sql = 'DROP TABLE IF EXISTS %s CASCADE;\n' % dbtable
-        util.write_file_utf8(fcresql, sql)
+        sql = 'DROP TABLE IF EXISTS %s CASCADE;' % dbtable
+        util.writeln_file_utf8(fcresql, sql)
 
     # http://www.cnblogs.com/hbase-community/p/8853573.html
     if uuid_seqs:
         utf16str = uuidtable.get('comment', '%s.uuid.$sequence' % tablespace).strip("#',. \n").strip('"')
 
-        util.write_file_utf8(fcresql, "\n")
-        util.write_file_utf8(fcresql, "########################################\n")
-        util.write_file_utf8(fcresql, "# %s\n" % utf16str.encode('utf-8'))
-        util.write_file_utf8(fcresql, "########################################\n")
+        util.writeln_file_utf8(fcresql)
+        util.writeln_file_utf8(fcresql, '#'*40)
+        util.writeln_file_utf8(fcresql, "# %s" % utf16str.encode('utf-8'))
+        util.writeln_file_utf8(fcresql, '#'*40)
         for seq in uuid_seqs:
             seqname = '"%s"."uuid.%s"' % (tablespace, seq)
-            sql = 'DROP SEQUENCE IF EXISTS %s;\n' % seqname
-            util.write_file_utf8(fcresql, sql)
+            sql = 'DROP SEQUENCE IF EXISTS %s;' % seqname
+            util.writeln_file_utf8(fcresql, sql)
 
     if uuid_seqs:
-        util.write_file_utf8(fcresql, "\n")
+        util.writeln_file_utf8(fcresql)
         for seq in uuid_seqs:
             seqname = '"%s"."uuid.%s"' % (tablespace, seq)
             if sequence_is_cycle:
-                sql = 'CREATE SEQUENCE IF NOT EXISTS %s START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE %s CYCLE CACHE %s;\n' % (seqname, str(sequence_max_value), str(sequence_cache_number))
+                sql = 'CREATE SEQUENCE IF NOT EXISTS %s START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE %s CYCLE CACHE %s;' % (seqname, str(sequence_max_value), str(sequence_cache_number))
             else:
-                sql = 'CREATE SEQUENCE IF NOT EXISTS %s START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE %s CACHE %s;\n' % (seqname, str(sequence_max_value), str(sequence_cache_number))
-            util.write_file_utf8(fcresql, sql)
+                sql = 'CREATE SEQUENCE IF NOT EXISTS %s START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE %s CACHE %s;' % (seqname, str(sequence_max_value), str(sequence_cache_number))
+            util.writeln_file_utf8(fcresql, sql)
 
     numtables = 0
     for tablename in tables:
