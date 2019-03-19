@@ -1,0 +1,65 @@
+# options for sb2_webapp_gen.py
+main:
+    title: $APPNAME
+    description: $APPHELP
+    options:
+        - log_path:
+            optarg: '-O --log-path'
+            action: store
+            type: string
+            default: '/var/log/python2app'
+            help: 'path to app log file'
+            metavar: LOGPATH
+
+        - log_level:
+            optarg: '-L --log-level'
+            action: store
+            type: string
+            default: DEBUG
+            help: 'log level: DEBUG WARN INFO ERROR'
+            metavar: LOGLEVEL
+
+        - create_project:
+            optarg: '--create-project'
+            action: store_true
+            default: False
+            help: 'use create options to create project'
+
+        - force:
+            action: store_true
+            default: False
+            help: 'force to overwrite dest file if it exists'
+
+create:
+    title: "create options"
+    description: "options only used to create project"
+    options:
+        - groupId:
+            optarg: '--groupId'
+            default: 'com.pepstack'
+            help: "group id"
+
+        - artifactId:
+            optarg: '--artifactId'
+            default: 'sb2-webapp'
+            help: "artifact id"
+
+        - artifactName:
+            optarg: '--artifactName'
+            default: 'webapp'
+            help: "artifact name"
+
+        - artifactVersion:
+            optarg: '--artifactVersion'
+            default: '0.0.1-SNAPSHOT'
+            help: "artifact version"
+
+        - artifactDescription:
+            optarg: '--artifactDescription'
+            default: 'springboot2 webapp project'
+            help: "description of artifact"
+
+        - artifactRootdir:
+            optarg: '--artifactRootdir'
+            default: '${projectRootdir}/sb2projects/${artifactId}'
+            help: "artifact root dir for output"

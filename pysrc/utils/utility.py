@@ -6,7 +6,7 @@
 #
 # @create: 2015-12-02
 #
-# @update: 2019-03-15 18:55:28
+# @update: 2019-03-19 14:34:28
 #
 #######################################################################
 import os, errno, sys, shutil, inspect, select, commands
@@ -264,8 +264,8 @@ def init_parser_group(**kargs):
     parser = optparse.OptionParser(usage=usage,version="%prog " + appver)
 
     parser.add_option("-v", "--verbose",
-                action="store_true", dest="verbose", default=True,
-                help="be verbose (this is the default).")
+                action="store_true", dest="verbose", default=False,
+                help="verbose or not (default not verbose).")
     parser.add_option("-q", "--quiet",
                 action="store_false", dest="verbose",
                 help="quiet (no output).")
@@ -596,6 +596,55 @@ def create_output_file(outfile, output_callback, param = None, fileExistedAsErro
         error("create_output_file() error(%d): %s" % (e.args[0], e.args[1]))
     finally:
         os.unlink(tmpfname)
+
+
+# 复制目录树, 并根据设置替换目标文件夹. 参考下面的例子:
+#   srcdir => dstdir
+#
+#   test/ => test2/
+#   jdk/ => java/
+#
+#   copydirtree("/root/mydata", "/root/mydata2",
+#     ({
+#         "testDir": "/root/mydata/test"",
+#         "javaDir": "/root/mydata/jdk",
+#      },
+#      {
+#         "testDir": "/root/mydata2/test2",
+#         "javaDir": "/root/mydata2/java",
+#      }),
+#      True)
+#
+def copydirtree(srcdir, dstdir, pairCfg = None, verbose = True):
+    (srcPathsCfg, dstPathsCfg) = None, None
+    if pairCfg:
+        (srcPathsCfg, dstPathsCfg) = pairCfg
+
+    if not dir_exists(dstdir):
+        if verbose:
+            info("create dst dir: %s" % dstdir)
+        os.makedirs(dstdir)
+
+    if verbose:
+        info2("copydirtree: %s/ => %s/" % (srcdir, dstdir))
+
+    for f in os.listdir(srcdir):
+        pf = os.path.join(srcdir, f)
+        df = os.path.join(dstdir, f)
+
+        if srcPathsCfg and dstPathsCfg:
+            for k, v in srcPathsCfg.items():
+                if pf == v:
+                    df = dstPathsCfg.get(k, df)
+                    break
+
+        if os.path.isfile(pf):
+            if verbose:
+                info("copyfile: %s -> %s" % (pf, df))
+            shutil.copyfile(pf, df)
+        else:
+            copydirtree(pf, df, pairCfg, verbose)
+    pass
 
 #######################################################################
 

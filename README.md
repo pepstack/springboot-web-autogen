@@ -11,3 +11,20 @@ autogen springboot2 website
 
         $ phoenix_cresql_gen.py --help
 
+    src/
+        main/
+            java/
+                com/
+                    pepstack/
+                        webapp/
+                            controller/
+                            model/
+            resources/
+                static/
+                    css/
+                    js/
+                templates/
+        test/
+            java/
+                com/
+                    pepstack/

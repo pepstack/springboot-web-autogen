@@ -30,7 +30,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 #######################################################################
-only_exts = ['.java', '.h', '.c', '.cpp', '.cxx', '.txt', '.py']
+only_exts = ['.java', '.xml', '.txt']
 
 ignore_dirs = ['utils', '.svn', '.git', '.mvn']
 
@@ -41,7 +41,7 @@ ignore_exts = ['.dtsx', '.doc', '.docx', '.log', '.xls', '.vsd', '.pptx',
     '.exe', '.obj', '.lib', '.suo',
     '.so', '.svn', '.git', '.gitignore']
 
-ignore_files = ['repl.py']
+ignore_files = ['replace.py']
 
 
 def file_times(filename):
@@ -202,7 +202,7 @@ def main(parser):
 ########################################################################
 # Usage:
 #
-#   $ ./repl.py -P './' -S "__cleanup" -D "___cleanup"
+#   $ ./replace.py -P './' -S "__cleanup" -D "___cleanup"
 #
 # 替换文件的创建时间
 #   $ ./scripts/repl.py -S "@create:" -D "@create: $(ctime)" -L -R

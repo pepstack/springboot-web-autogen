@@ -3,6 +3,7 @@
 # 必须以 utf-8 编码
 # 字符名长度最小为 3 个字符
 #######################################
+filetype: dbi
 author: master@pepstack.com
 version: 1.0
 create: '2018-12-22'
